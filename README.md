@@ -12,7 +12,7 @@ Open this in a code editor such as VSCode or Zed and click on the preview button
 
 ## Introduction
 
-It can be daunting to jump right into a codebase written using the QP/C framework, so this Quick Start Guide will walk you through a simple blinky example writtien in QP to showcase the specific quirks and features incorporated in QP! This guide will go over constructors, Active Objects, event posting, and general syntax. Shown below is the code for the QP logic:
+It can be daunting to jump right into a codebase written using the QP/C framework, so this Quick Start Guide will walk you through a simple blinky example writtien in QP to showcase the specific quirks and features incorporated in QP! This guide will go over constructors, Active Objects, event posting, and general syntax. Shown below is the code for the QP logic, which was grabbed from this link: https://github.com/QuantumLeaps/qpc-examples/tree/3cce8da63383fec087f3e01a3c1fd922f7bea331/zephyr/blinky
 
 ```
 //............................................................................
