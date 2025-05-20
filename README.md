@@ -24,7 +24,6 @@ typedef struct {
 // private:
     QTimeEvt timeEvt; // private time event generator
 } Blinky;
-extern Blinky Blinky_inst; // the Blinky active object
 
 // protected:
 static QState Blinky_initial(Blinky * const me, void const * const par);
@@ -32,7 +31,7 @@ static QState Blinky_off(Blinky * const me, QEvt const * const e);
 static QState Blinky_on(Blinky * const me, QEvt const * const e);
 
 //----------------------------------------------------------------------------
-Blinky Blinky_inst;
+Blinky Blinky_inst; // blinky AO instance
 QActive * const AO_Blinky = &Blinky_inst.super;
 
 //............................................................................
