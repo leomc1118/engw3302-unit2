@@ -8,7 +8,7 @@ Published 2025-5-19
 
 ## Instructions for Viewing
 
-Open this in a code editor such as VSCode or Zed and click on the preview button to view this file in its intended format. If you do not have a code editor, I recommend copying and pasting in the contents of this file (by highlighting everything and copying) into this website to view the compiled formatting: https://markdownlivepreview.com/
+Open this in a code editor such as VSCode or Zed and click on the preview button to view this file in its intended format or read it on GitHub.
 
 ## Introduction
 
