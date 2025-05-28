@@ -128,7 +128,7 @@ typedef struct {
 
 ### Timeout Timer
 
-The struct member ```QTimeEvt timeEvt``` is a variable that represents a timeout timer. When this timer expires, an event is posted with from within the QP framwork and it sends a timeout signal to the Blinky AO. It's up to the Blinky AO on how it wants to handle the timeout signal, but the implementation of the timeout is important in order to keep the QP app going because a complicated system with many AOs will be lefting waiting if an AO that receives a timeout signal isn't handled by that AO. 
+The struct member ```QTimeEvt timeEvt``` is a variable that represents a timeout timer. When this timer expires, an event is posted with from within the QP framwork and it sends a timeout signal to the Blinky AO. It's up to the Blinky AO on how it wants to handle the timeout signal. A complicated system with many AOs will be left waiting if an AO that receives a timeout signal and doesn't handle the signal.
 
 ```
 // Blinky class...
