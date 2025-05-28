@@ -8,11 +8,11 @@ Published 2025-5-19
 
 ## Instructions for Viewing
 
-Open this in a code editor such as VSCode or Zed and click on the preview button to view this file in its intended format or read it on GitHub.
+Open this in a code editor such as VSCode or Zed and click on the preview button to view this file in its intended format or read it on GitHub at https://github.com/leomc1118/engw3302-unit2/edit/main/README.md.
 
 ## Introduction
 
-It can be daunting to jump right into a codebase written using the QP/C framework, so this Quick Start Guide will walk you through a simple blinky example writtien in QP to showcase the specific quirks and features incorporated in QP! This guide will go over constructors, Active Objects, event posting, and general syntax. Shown below is the code for the QP logic, which was grabbed from this link: https://github.com/QuantumLeaps/qpc-examples/tree/3cce8da63383fec087f3e01a3c1fd922f7bea331/zephyr/blinky
+The point of the QP/C framework is to provide embedded systems with a way to manage many subsystems, such as a BLE controller and an IMU. Especially on resource scarce systems, it can be advtantageous to implement a state machine framework that can manage system resources effectively. Often times, it can be daunting to jump right into a codebase written using the QP/C framework, so this Quick Start Guide will walk you through a simple blinky example writtien in QP to showcase the specific quirks and features incorporated in QP! This guide will go over constructors, Active Objects, event posting, and general syntax. Shown below is the code for the QP logic, which was grabbed from this link: https://github.com/QuantumLeaps/qpc-examples/tree/3cce8da63383fec087f3e01a3c1fd922f7bea331/zephyr/blinky
 
 ```
 //............................................................................
@@ -94,7 +94,7 @@ QState Blinky_on(Blinky * const me, QEvt const * const e) {
 
 ## Part 1: Setting Up Blinky
 
-Before QP can start anything, it needs to organize and intialize its variables. Starting with:
+Before QP can start anything, it needs to organize and intialize its variables.
 
 ```
 // Blinky class...
@@ -105,7 +105,6 @@ typedef struct {
 // private:
     QTimeEvt timeEvt; // private time event generator
 } Blinky;
-extern Blinky Blinky_inst; // the Blinky active object
 
 // protected:
 static QState Blinky_initial(Blinky * const me, void const * const par);
@@ -116,13 +115,42 @@ static QState Blinky_on(Blinky * const me, QEvt const * const e);
 ### Inheritance
 The struct member ```QActive super``` is essentially implementing inheritance in C. It allows the Blinky class to become a QActive object, which is what QP uses to enable event-driven programming by dividing the system into independent and concurrent components that pass messages to each other without sharing the same data. QActive objects are also commonly referred to as Active Objects (AOs). 
 
+```
+// Blinky class...
+typedef struct {
+// protected:
+    QActive super;  <------------------- Inheritance -------------------
+
+// private:
+    QTimeEvt timeEvt; // private time event generator
+} Blinky;
+```
+
 ### Timeout Timer
 
 The struct member ```QTimeEvt timeEvt``` is a variable that represents a timeout timer. When this timer expires, an event is posted with from within the QP framwork and it sends a timeout signal to the Blinky AO. It's up to the Blinky AO on how it wants to handle the timeout signal, but the implementation of the timeout is important in order to keep the QP app going because a complicated system with many AOs will be lefting waiting if an AO that receives a timeout signal isn't handled by that AO. 
 
+```
+// Blinky class...
+typedef struct {
+// protected:
+    QActive super;   // inherit QActive
+
+// private:
+    QTimeEvt timeEvt; <------------------- Timeout Timer -------------------
+} Blinky;
+```
+
 ### Initialization Preparation
 
-Finally, the code snippet creates a Blinky AO instance for use and calls its states for use in the initialization. 
+Finally, the code snippet calls its states for use in the initialization. 
+
+```
+// protected:
+static QState Blinky_initial(Blinky * const me, void const * const par); <------------------- Initialize the initial state -------------------
+static QState Blinky_off(Blinky * const me, QEvt const * const e); <------------------- Initialize state -------------------
+static QState Blinky_on(Blinky * const me, QEvt const * const e); <------------------- Initialize state -------------------
+```
 
 ## Part 2: Initialization
 
@@ -153,9 +181,23 @@ QState Blinky_initial(Blinky * const me, void const * const par) {
 
 The code snippet starts out by calling a globally scoped opqaue pointer to the local Blinky AO instance. this is most useful in a more complicated codebase where there are many AOs that need to talk to each other through events and these globally scoped opaque pointers are how an AO can directly send an event to another AO. through the opaue pointer, one cannot access the elements inside of an AO struct. We will discuss why this pointer useful later. 
 
-### Constructor
+```
+Blinky Blinky_inst;
+QActive * const AO_Blinky = &Blinky_inst.super;
+```
+
+### Blinky Constructor
 
 Next, the function ```Blinky_ctor(void)``` is a constructor for Blinky called during the project's setup. The constructor creates a local pointer to the Blinky instance called ```me```, which is often used to modify specific variables of the AO. For example, a Button AO instance could have a bolean member of the Button struct called ```pressed``` and the program would change the status by calling ```me->pressed = true;```. This boolean could then be used by multiple states inside of the Button AO or posted in an event to another AO. 
+
+```
+void Blinky_ctor(void) <------------------- Blinky constructor -------------------
+{
+    Blinky * const me = &Blinky_inst;
+    QActive_ctor(&me->super, Q_STATE_CAST(&Blinky_initial));
+    QTimeEvt_ctorX(&me->timeEvt, &me->super, TIMEOUT_SIG, 0U);
+}
+```
 
 #### QActive Constructor
 
@@ -171,6 +213,19 @@ After the QActive constructor is called, a constructor is called for the the tim
 ### Initial State
 
 Now we move onto the first state of the Blinky AO state machine. HSM stands for Hierarchical State Machine, which gives each state of a state machine a priority within a queue, which QP has in order to handle multiple AOs requesting system resources to perform their desired task.
+
+```
+// HSM definition ----------------------------------------------------------
+QState Blinky_initial(Blinky * const me, QEvt const * const e)
+{
+    (void)e; // avoid compiler warning
+
+    // arm the time event to expire in half a second and every half second
+    QTimeEvt_armX(&me->timeEvt, BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC);
+
+    return Q_TRAN(&Blinky_off);
+}
+```
 
 #### Unused Parameter
 
@@ -205,6 +260,7 @@ typedef struct{
 } blinky_off_event_t;
 
 blinky_off_event_t * off_evt = Q_NEW(blinky_off_event_t, BLINKY_OFF_SIG);
+off_evt->pressed = true;
 QACTIVE_POST_REPLYABLE_REQUEST(AO_Blinky, 0u, off_evt, me)
 ```
 
@@ -214,15 +270,24 @@ Update to the state machine logic for this specific example with extra signals `
 QState Blinky_off(Blinky * const me, QEvt const * const e) {
     QState status;
     switch (e->sig) {
-        case Q_ENTRY_SIG: 
-        case BLINKY_OFF_SIG:
+        case Q_ENTRY_SIG:
         {
             BSP_ledOff();
             status = Q_HANDLED();
             break;
         }
+        case BLINKY_OFF_SIG: <------------------- Added signal case -------------------
+        {
+            blinky_off_event_t * p_evt = (blinky_off_event_t *) e;
+            if (p_evt->pressed)
+            {
+                BSP_ledOff();
+                status = Q_HANDLED();
+                break;
+            }
+        }
         case TIMEOUT_SIG:
-        case BLINKY_ON_SIG:
+        case BLINKY_ON_SIG: <------------------- Added signal case -------------------
         {
             status = Q_TRAN(&Blinky_on);
             break;
@@ -240,14 +305,14 @@ QState Blinky_on(Blinky * const me, QEvt const * const e) {
     QState status;
     switch (e->sig) {
         case Q_ENTRY_SIG:
-        case BLINKY_ON_SIG:
+        case BLINKY_ON_SIG: <------------------- Added signal case -------------------
         {
             BSP_ledOn();
             status = Q_HANDLED();
             break;
         }
         case TIMEOUT_SIG:
-        case BLINKY_OFF_SIG:
+        case BLINKY_OFF_SIG: <------------------- Added signal case -------------------
         {
             status = Q_TRAN(&Blinky_off);
             break;
@@ -287,8 +352,8 @@ QState Blinky_initial(Blinky * const me, void const * const par) {
     // arm the time event to expire in half a second and every half second
     QTimeEvt_armX(&me->timeEvt, BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC);
 
-    QActive_subscribe(&me->super, BUTTON_OFF_SIG);
-    QActive_subscribe(&me->super, BUTTON_ON_SIG);
+    QActive_subscribe(&me->super, BUTTON_OFF_SIG); <------------------- Signal subscribe -------------------
+    QActive_subscribe(&me->super, BUTTON_ON_SIG); <------------------- Signal subscribe -------------------
 
     return Q_TRAN(&Blinky_off);
 }
@@ -345,3 +410,6 @@ QState Blinky_on(Blinky * const me, QEvt const * const e) {
 ```
 
 This change showcases how one could simply send out an event to all AOs that are subscribed to the ```BUTTON_ON_SIG``` and ```BUTTON_OFF_SIG``` and how those receiving AOs would handle those signals. Essentially, when an AO wants to send out a message to all AOs that care, this would be the better method of getting this message to all those AOs instead of posting directly to each one every time. 
+
+## Summary
+In summary, this Quick Start Guide has showcased the implementation of constructors, Active Objects, event posting, and QP/C specific syntax. This document is intended to serve as a place to refer back to when starting to read a developed QP/C codebase. Through repetition and persistance, you will become familiar with QP/C and this document is meant to make the repitition more efficient!
