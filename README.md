@@ -245,7 +245,9 @@ Now that the program is past the initialization phase, it's time to dissect how 
 
 ### Blinky_off/Blinky_on Explained
 
-View the sequence diagram here: https://imgur.com/a/7LbRo7z
+![diagram](sequencediagram.png)
+
+View the sequence diagram here if viewing the downloaded Markdown file: https://imgur.com/a/7LbRo7z
 
 The state first creates a QState to return called ```status```, which is returned to the QP event processor to handle the state transition. Then, based on the external signal from a posted event that Blinky_off receives, the Blinky_off state will go into the states described in the case statements. For example, if the Blinky AO is in the Blinky_off state and the timeout timer expires, the Blinky AO will receive an event with the signal ```TIMEOUT_SIG``` and then transition to Blinky_on. The ```Q_ENTRY_SIG``` and ```Q_EXIT_SIG``` (which isn't implemented in this example) cases are always entered when transitioning into and out of a state. So, in the example mentioned earlier, as the Blinky_off state will transition into Blinky_on and enter ```Q_ENTRY_SIG``` first and run the code there, then it will do whatever the Blinky_on state is designed to do. 
 
