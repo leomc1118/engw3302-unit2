@@ -8,7 +8,7 @@ Published 2025-5-19
 
 ## Instructions for Viewing
 
-Open this in a code editor such as VSCode or Zed and click on the preview button to view this file in its intended format or read it on GitHub at https://github.com/leomc1118/engw3302-unit2/edit/main/README.md.
+Open this in a code editor such as VSCode or Zed and click on the preview button to view this file in its intended format or read it on GitHub at https://github.com/leomc1118/engw3302-unit2/blob/main/README.md.
 
 ## Introduction
 
